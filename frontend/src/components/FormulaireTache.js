@@ -5,49 +5,47 @@ function FormulaireTache({ onAjouter }) {
     const [description, setDescription] = useState('');
     const [assigneA, setAssigneA] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!titre) return; // faut au moins un titre
+        if (!titre.trim()) return;
 
-        onAjouter({ titre, description, assigneA });
-
-        // reset le form
-        setTitre('');
-        setDescription('');
-        setAssigneA('');
-    }
+        const succes = await onAjouter({ titre, description, assigneA });
+        if (succes) {
+            setTitre('');
+            setDescription('');
+            setAssigneA('');
+        }
+    };
 
     return (
-        <form onSubmit={handleSubmit} style={{ marginBottom: '20px', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+        <form onSubmit={handleSubmit} className="form-container">
             <h3>Nouvelle Tache</h3>
-            <div style={{ marginBottom: '10px' }}>
+            <div className="form-group">
                 <input
                     type="text"
-                    placeholder="Titre de la tache"
+                    placeholder="Titre de la tache *"
                     value={titre}
                     onChange={(e) => setTitre(e.target.value)}
-                    style={{ width: '100%', padding: '8px' }}
                 />
             </div>
-            <div style={{ marginBottom: '10px' }}>
+            <div className="form-group">
                 <textarea
-                    placeholder="Description"
+                    placeholder="Description (optionnel)"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    style={{ width: '100%', padding: '8px' }}
+                    rows={2}
                 />
             </div>
-            <div style={{ marginBottom: '10px' }}>
+            <div className="form-group">
                 <input
                     type="text"
-                    placeholder="Assigner a (nom eleve)"
+                    placeholder="Assigner a (nom)"
                     value={assigneA}
                     onChange={(e) => setAssigneA(e.target.value)}
-                    style={{ width: '100%', padding: '8px' }}
                 />
             </div>
-            <button type="submit" style={{ backgroundColor: '#4CAF50', color: 'white', padding: '10px 20px', border: 'none', cursor: 'pointer' }}>
-                Ajouter Tache
+            <button type="submit" className="btn btn-primary">
+                Ajouter
             </button>
         </form>
     );
