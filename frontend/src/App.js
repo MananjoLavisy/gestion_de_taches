@@ -1,22 +1,59 @@
 import React, { useState, useEffect } from 'react';
-import { getTaches, creerTache, modifierTache, supprimerTache } from './services/api';
+import { getTaches, creerTache, modifierTache, supprimerTache, getProfilAPI, getToken, setToken, removeToken } from './services/api';
 import TacheItem from './components/TacheItem';
 import FormulaireTache from './components/FormulaireTache';
+import Login from './components/Login';
+import Register from './components/Register';
 import './App.css';
 
 function App() {
+    const [user, setUser] = useState(null);
+    const [authPage, setAuthPage] = useState('login');
+    const [authLoading, setAuthLoading] = useState(true);
     const [taches, setTaches] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filtre, setFiltre] = useState('tous');
     const [notification, setNotification] = useState(null);
 
+    // Verifier le token au chargement
     useEffect(() => {
-        chargerTaches();
+        const verifierAuth = async () => {
+            const token = getToken();
+            if (token) {
+                try {
+                    const response = await getProfilAPI();
+                    setUser(response.data);
+                } catch (error) {
+                    removeToken();
+                }
+            }
+            setAuthLoading(false);
+        };
+        verifierAuth();
     }, []);
+
+    // Charger les taches quand l'utilisateur est connecte
+    useEffect(() => {
+        if (user) {
+            chargerTaches();
+        }
+    }, [user]);
 
     const afficherNotif = (message, type = 'success') => {
         setNotification({ message, type });
         setTimeout(() => setNotification(null), 3000);
+    };
+
+    const handleLogin = (data) => {
+        setToken(data.token);
+        setUser({ _id: data._id, nom: data.nom, email: data.email });
+    };
+
+    const handleLogout = () => {
+        removeToken();
+        setUser(null);
+        setTaches([]);
+        setLoading(true);
     };
 
     const chargerTaches = async () => {
@@ -78,6 +115,16 @@ function App() {
         termine: taches.filter(t => t.statut === 'termine').length,
     };
 
+    if (authLoading) return <div className="loading">Chargement...</div>;
+
+    // Si pas connecte, afficher login ou register
+    if (!user) {
+        if (authPage === 'login') {
+            return <Login onLogin={handleLogin} onSwitch={() => setAuthPage('register')} />;
+        }
+        return <Register onLogin={handleLogin} onSwitch={() => setAuthPage('login')} />;
+    }
+
     if (loading) return <div className="loading">Chargement...</div>;
 
     return (
@@ -85,6 +132,10 @@ function App() {
             <div className="app-header">
                 <h1>Gestion des Taches</h1>
                 <p>Projet collaboratif de classe</p>
+                <div className="header-user">
+                    <span>Bonjour, {user.nom}</span>
+                    <button className="btn-logout" onClick={handleLogout}>Deconnexion</button>
+                </div>
             </div>
 
             {notification && (

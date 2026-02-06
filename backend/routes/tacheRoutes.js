@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { getTaches, creerTache, modifierTache, supprimerTache } = require('../controllers/tacheController');
+const { proteger } = require('../middleware/authMiddleware');
 
-router.get('/', getTaches);
-router.post('/', creerTache);
-router.put('/:id', modifierTache);
-router.delete('/:id', supprimerTache);
+router.get('/', proteger, getTaches);
+router.post('/', proteger, creerTache);
+router.put('/:id', proteger, modifierTache);
+router.delete('/:id', proteger, supprimerTache);
 
 module.exports = router;
